@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ミセスの曲 実在する？しない？クイズ</title>
+  <style>
+    :root {
+      --primary-color: #00d2ff;
+      --secondary-color: #3a7bd5;
+      --correct-color: #4CAF50;
+      --incorrect-color: #F44336;
+      --bg-color: #1a1a2e;
+      --text-color: #fff;
+    }
+    body {
+      margin: 0;
+      font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background: linear-gradient(135deg, #16222A 0%, #3A6073 100%);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 40px 30px;
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .question-box {
+      font-size: 2.2rem;
+      font-weight: 900;
+      margin: 40px 0;
+      padding: 30px 10px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 15px;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+    }
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(240,240,240,0.8));
+      color: #333;
+      border: none;
+      padding: 18px 40px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      flex: 1;
+      min-width: 150px;
+    }
+    .btn:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.4);
+    }
+    .btn:active {
+      transform: translateY(2px);
+    }
+    .hidden {
+      display: none !important;
+    }
+    
+    /* プログレスバー */
+    .progress-container {
+      width: 100%;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      height: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #00d2ff;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    #q-counter {
+      color: #00d2ff;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    /* 結果リスト */
+    #result-list {
+      text-align: left;
+      font-size: 1rem;
+      margin-top: 20px;
+      margin-bottom: 30px;
+      max-height: 350px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.3);
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .result-item {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+    }
+    .result-item:last-child {
+      border-bottom: none;
+    }
+    .correct-text { color: #81C784; font-weight: bold; }
+    .wrong-text { color: #E57373; font-weight: bold; }
+
+    /* BGMボタン */
+    .bgm-control {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.3);
+      z-index: 10;
+      transition: background 0.3s;
+    }
+    .bgm-control:hover {
+      background: rgba(0,0,0,0.8);
+    }
+
+    /* アニメーション用 */
+    .flash-correct {
+      animation: flashGreen 0.5s ease;
+    }
+    .flash-wrong {
+      animation: flashRed 0.5s ease;
+    }
+    @keyframes flashGreen {
+      0% { background: rgba(76, 175, 80, 0.6); }
+      100% { background: rgba(255, 255, 255, 0.15); }
+    }
+    @keyframes flashRed {
+      0% { background: rgba(244, 67, 54, 0.6); }
+      100% { background: rgba(255, 255, 255, 0.15); }
+    }
+    #feedback-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 8rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .show-icon {
+      opacity: 0.8 !important;
+      transform: translate(-50%, -50%) scale(1.2) !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BGM音声ファイル[cite: 1] -->
+  <audio id="bgmAudio" src="bgm.mp3" loop></audio>
+
+  <div id="bgm-toggle" class="bgm-control hidden">🎵 BGM: ON</div>
+
+  <!-- スタート画面 -->
+  <div class="container" id="screen-start">
+    <h1>🍏 ミセスの曲<br>実在する？しない？クイズ</h1>
+    <p style="margin-bottom:30px; line-height: 1.6;">
+      全110問以上の巨大データベースから<br>
+      ランダムに<strong>20問</strong>出題されます。<br>
+      本当にMrs. GREEN APPLEの曲として存在するかを当ててください！
+    </p>
+    <button class="btn" id="start-btn" style="background: linear-gradient(145deg, #00d2ff, #3a7bd5); color: white;">
+      クイズをスタート！
+    </button>
+  </div>
+
+  <!-- クイズ画面 -->
+  <div class="container hidden" id="screen-quiz">
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div id="q-counter">Q. 1 / 20</div>
+    
+    <div class="question-box" id="song-title">曲名</div>
+    
+    <div class="btn-container">
+      <button class="btn" onclick="answer(true)">⭕️ 実在する</button>
+      <button class="btn" onclick="answer(false)">❌ 架空の曲</button>
+    </div>
+    
+    <div id="feedback-icon"></div>
+  </div>
+
+  <!-- 結果画面 -->
+  <div class="container hidden" id="screen-result">
+    <h1>結果発表 🎉</h1>
+    <h2 id="score-text" style="font-size: 2rem; color: #00d2ff; margin: 10px 0;">20問中 15問 正解！</h2>
+    <p id="rank-text" style="font-weight: bold; margin-bottom: 20px;">ランク：ミセスファン</p>
+    
+    <div id="result-list"></div>
+    
+    <button class="btn" onclick="initQuiz()" style="background: linear-gradient(145deg, #00d2ff, #3a7bd5); color: white;">
+      もう一度挑戦する
+    </button>
+  </div>
+
+  <script>
+    // 楽曲データベース (全110問以上：実在55問、架空55問)
+    const songData = [
+      // 実在する曲
+      { title: "インフェルノ", isReal: true }, { title: "青と夏", isReal: true },
+      { title: "ケセラセラ", isReal: true }, { title: "ライラック", isReal: true },
+      { title: "ダンスホール", isReal: true }, { title: "我逢人", isReal: true },
+      { title: "アウフヘーベン", isReal: true }, { title: "ア・プリオリ", isReal: true },
+      { title: "Soranji", isReal: true }, { title: "WanteD! WanteD!", isReal: true },
+      { title: "ロマンチシズム", isReal: true }, { title: "鯨の唄", isReal: true },
+      { title: "橙", isReal: true }, { title: "サママ・フェスティバル！", isReal: true },
+      { title: "僕のこと", isReal: true }, { title: "庶幾の唄", isReal: true },
+      { title: "フロリジナル", isReal: true }, { title: "Magic", isReal: true },
+      { title: "StaRt", isReal: true }, { title: "Speaking", isReal: true },
+      { title: "Attitude", isReal: true }, { title: "CHEERS", isReal: true },
+      { title: "春愁", isReal: true }, { title: "点描の唄", isReal: true },
+      { title: "Love me, Love you", isReal: true }, { title: "どこかで日は昇る", isReal: true },
+      { title: "ナニヲナニヲ", isReal: true }, { title: "リスキーゲーム", isReal: true },
+      { title: "VIP", isReal: true }, { title: "ミスカサズ", isReal: true },
+      { title: "アンゼンパイ", isReal: true }, { title: "うぶ", isReal: true },
+      { title: "ラー", isReal: true }, { title: "ゼンマイ", isReal: true },
+      { title: "ツキマシテハ", isReal: true }, { title: "Just a Friend", isReal: true },
+      { title: "絶世生物", isReal: true }, { title: "藍", isReal: true },
+      { title: "Oz", isReal: true }, { title: "マジェスティック", isReal: true },
+      { title: "延々", isReal: true }, { title: "迎えに行くわ", isReal: true },
+      { title: "umbrella", isReal: true }, { title: "泣き声", isReal: true },
+      { title: "月とアネモネ", isReal: true }, { title: "経路", isReal: true },
+      { title: "パブリック", isReal: true }, { title: "ニュー・マイ・ノーマル", isReal: true },
+      { title: "アポロドロス", isReal: true }, { title: "コロンブス", isReal: true },
+      { title: "ファミリア", isReal: true }, { title: "ディアボロ", isReal: true },
+      { title: "私は最強", isReal: true }, { title: "Blizzard", isReal: true },
+      { title: "Loneliness", isReal: true },
+
+      // 架空の曲
+      { title: "春の風", isReal: false }, { title: "サイネリア", isReal: false },
+      { title: "夏の終わりの約束", isReal: false }, { title: "タイムトラベラー", isReal: false },
+      { title: "空想列車", isReal: false }, { title: "青い春のせい", isReal: false },
+      { title: "ミッドナイトパレード", isReal: false }, { title: "スターダスト", isReal: false },
+      { title: "ユートピアの嘘", isReal: false }, { title: "夢幻泡影", isReal: false },
+      { title: "クロノグラフ", isReal: false }, { title: "ノスタルジック・ブルー", isReal: false },
+      { title: "シグナルレッド", isReal: false }, { title: "プラネット", isReal: false },
+      { title: "アンコール", isReal: false }, { title: "水彩画", isReal: false },
+      { title: "サヨナラマーチ", isReal: false }, { title: "スカイライン", isReal: false },
+      { title: "閃光", isReal: false }, { title: "リフレイン", isReal: false },
+      { title: "サイダーの微熱", isReal: false }, { title: "星屑アンサンブル", isReal: false },
+      { title: "黎明の歌", isReal: false }, { title: "アネモネの祈り", isReal: false },
+      { title: "オーバーライト", isReal: false }, { title: "カメレオンの涙", isReal: false },
+      { title: "僕らの軌跡", isReal: false }, { title: "青春スケッチ", isReal: false },
+      { title: "モノクローム", isReal: false }, { title: "ミッドナイト・ランナー", isReal: false },
+      { title: "サマー・トワイライト", isReal: false }, { title: "君といた夏", isReal: false },
+      { title: "フィクション", isReal: false }, { title: "ノクターン", isReal: false },
+      { title: "白昼夢", isReal: false }, { title: "アトモスフィア", isReal: false },
+      { title: "パラドックス", isReal: false }, { title: "センセーション", isReal: false },
+      { title: "群青の空", isReal: false }, { title: "エバーグリーン", isReal: false },
+      { title: "メトロノーム", isReal: false }, { title: "シリウス", isReal: false },
+      { title: "ハルカカナタ", isReal: false }, { title: "アイリス", isReal: false },
+      { title: "ペネロペ", isReal: false }, { title: "ユースフル", isReal: false },
+      { title: "サンセット", isReal: false }, { title: "エンドロール", isReal: false },
+      { title: "デイドリーム", isReal: false }, { title: "ルミネセンス", isReal: false },
+      { title: "ノスタルジア", isReal: false }, { title: "イノセンス", isReal: false },
+      { title: "カレイドスコープ", isReal: false }, { title: "蜃気楼", isReal: false },
+      { title: "アステリズム", isReal: false }
+    ];
+
+    const TOTAL_QUESTIONS = 20;
+    let quizList = [];
+    let currentIndex = 0;
+    let score = 0;
+    let history = [];
+    let isBgmPlaying = false;
+    let isAnimating = false; // 連打防止用
+
+    const screenStart = document.getElementById('screen-start');
+    const screenQuiz = document.getElementById('screen-quiz');
+    const screenResult = document.getElementById('screen-result');
+    const bgmAudio = document.getElementById('bgmAudio');
+    const bgmToggle = document.getElementById('bgm-toggle');
+    const questionBox = document.getElementById('song-title');
+    const feedbackIcon = document.getElementById('feedback-icon');
+
+    // BGMの再生
+    document.getElementById('start-btn').addEventListener('click', () => {
+      bgmAudio.play().then(() => {
+        isBgmPlaying = true;
+        bgmToggle.classList.remove('hidden');
+      }).catch(e => {
+        console.log("BGMの再生に失敗しました", e);
+      });
+      initQuiz();
+    });
+
+    // BGMオンオフ切り替え
+    bgmToggle.addEventListener('click', () => {
+      if (isBgmPlaying) {
+        bgmAudio.pause();
+        bgmToggle.textContent = "🎵 BGM: OFF";
+      } else {
+        bgmAudio.play();
+        bgmToggle.textContent = "🎵 BGM: ON";
+      }
+      isBgmPlaying = !isBgmPlaying;
+    });
+
+    function initQuiz() {
+      // ランダムに20問を抽出
+      let shuffled = [...songData].sort(() => 0.5 - Math.random());
+      quizList = shuffled.slice(0, TOTAL_QUESTIONS);
+      
+      currentIndex = 0;
+      score = 0;
+      history = [];
+      isAnimating = false;
+
+      screenStart.classList.add('hidden');
+      screenResult.classList.add('hidden');
+      screenQuiz.classList.remove('hidden');
+
+      updateProgress();
+      showQuestion();
+    }
+
+    function updateProgress() {
+      const percentage = (currentIndex / TOTAL_QUESTIONS) * 100;
+      document.getElementById('progress-bar').style.width = `${percentage}%`;
+    }
+
+    function showQuestion() {
+      document.getElementById('q-counter').textContent = `Q. ${currentIndex + 1} / ${TOTAL_QUESTIONS}`;
+      questionBox.textContent = quizList[currentIndex].title;
+      questionBox.className = "question-box"; // クラスリセット
+    }
+
+    function answer(userChoice) {
+      if (isAnimating) return; // アニメーション中はクリック無効
+      isAnimating = true;
+
+      const currentSong = quizList[currentIndex];
+      const isCorrect = (userChoice === currentSong.isReal);
+      
+      if (isCorrect) score++;
+
+      // 履歴保存
+      history.push({
+        title: currentSong.title,
+        correct: isCorrect,
+        realInfo: currentSong.isReal ? "実在する" : "架空の曲"
+      });
+
+      // 演出処理
+      feedbackIcon.textContent = isCorrect ? "⭕️" : "❌";
+      feedbackIcon.classList.add('show-icon');
+      questionBox.classList.add(isCorrect ? 'flash-correct' : 'flash-wrong');
+
+      setTimeout(() => {
+        feedbackIcon.classList.remove('show-icon');
+        currentIndex++;
+        updateProgress();
+
+        if (currentIndex < TOTAL_QUESTIONS) {
+          showQuestion();
+          isAnimating = false;
+        } else {
+          showResult();
+        }
+      }, 600); // 0.6秒後に次の問題へ
+    }
+
+    function showResult() {
+      screenQuiz.classList.add('hidden');
+      screenResult.classList.remove('hidden');
+
+      document.getElementById('score-text').textContent = `${TOTAL_QUESTIONS}問中 ${score}問 正解！`;
+
+      // ランク判定
+      let rank = "";
+      if (score === TOTAL_QUESTIONS) rank = "🏆 神レベル！JAM'Sの鑑です！";
+      else if (score >= 16) rank = "✨ 上級！かなりのファンですね！";
+      else if (score >= 10) rank = "👍 中級！ミセスをよく聴いていますね！";
+      else rank = "🌱 初心者！これからもっと聴き込みましょう！";
+      document.getElementById('rank-text').textContent = rank;
+
+      // リスト生成
+      const resultList = document.getElementById('result-list');
+      resultList.innerHTML = '';
+      history.forEach((item, i) => {
+        const mark = item.correct ? "⭕️" : "❌";
+        const colorClass = item.correct ? "correct-text" : "wrong-text";
+        resultList.innerHTML += `
+          <div class="result-item">
+            <span>${i+1}. ${item.title}</span>
+            <span class="${colorClass}">${mark} (${item.realInfo})</span>
+          </div>`;
+      });
+    }
+  </script>
+</body>
+</html>
